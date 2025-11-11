@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thiệp Cưới 42 – Mẫu tương tự (v2)</title>
+  <!-- Import Google fonts for elegant typography -->
+  <!-- Import additional fonts for the special headings -->
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Pinyon+Script&family=Josefin+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset some basic elements */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f5e6e3;
+      font-family: 'Playfair Display', serif;
+      color: #5a2a2a;
+      display: flex;
+      justify-content: center;
+    }
+    /* Wrapper to centre the invitation on the page */
+    .card-wrapper {
+      width: 420px;
+      max-width: 100%;
+      margin: 30px 0;
+      background: #fffdfd;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Floating control icons (heart). Audio control is defined separately below. */
+    /* Rotation for music icon when playing */
+    @keyframes rotateIcon {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Applied to the music icon when audio is playing */
+    .music-rotating {
+      animation: rotateIcon 6s linear infinite;
+    }
+    .floating-icons {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+    }
+    .floating-icons button {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: #fffdfd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-size: 16px;
+      color: #c26666;
+    }
+    .floating-icons button:hover { opacity: .85; }
+    /* Scale images within the floating buttons to fit nicely */
+    .floating-icons button img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    /* Audio control button wrapper */
+    #audio-control-wrapper {
+      /* Position the music button relative to the invitation card instead of the whole page */
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #fffdfd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 200;
+    }
+    #audio-control-wrapper img.music-icon {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    /* Cross (X) overlay for muted state */
+    #audio-control-wrapper .icon-cancel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #audio-control-wrapper .icon-cancel::before,
+    #audio-control-wrapper .icon-cancel::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 80%;
+      background: #c14444;
+      border-radius: 1px;
+    }
+    #audio-control-wrapper .icon-cancel::before {
+      transform: rotate(45deg);
+    }
+    #audio-control-wrapper .icon-cancel::after {
+      transform: rotate(-45deg);
+    }
+
+    /* Hide the cancel cross when music is playing */
+    #audio-control-wrapper.playing .icon-cancel {
+      display: none !important;
+    }
+    /* Vertical signature on the right side */
+    .signature {
+      /* Hide the vertical signature to avoid layout shifting */
+      display: none;
+    }
+    /* Header section styles */
+    .header {
+      padding: 20px 30px 10px;
+      text-align: center;
+    }
+    .header .small-title {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #b08a8a;
+      margin-bottom: 4px;
+    }
+    .header .main-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #c26666;
+      margin-bottom: 12px;
+    }
+    .header .names {
+      font-family: 'Great Vibes', cursive;
+      font-size: 32px;
+      color: #3d1d1d;
+      margin-bottom: 4px;
+    }
+    .header .double-happiness {
+      font-size: 28px;
+      color: #c26666;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    /* Styles for the special "SWEET WEDDING" heading */
+    .sweet-title {
+      margin-bottom: 12px;
+      font-size: 32px;
+      color: #c26666;
+      /* Use a classic script font similar to the sample provided */
+      font-family: 'Great Vibes', cursive;
+    }
+    .sweet-title .pinyon {
+      font-family: 'Pinyon Script', cursive;
+    }
+    .sweet-title .josefin {
+      font-family: 'Josefin Sans', sans-serif;
+    }
+    /* Envelope container */
+    .envelope-wrapper {
+      text-align: center;
+      margin-bottom: 20px;
+      /* ensure the envelope and hook stack vertically and stay centered */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .envelope {
+      width: 320px;
+      height: 200px;
+      margin: 0 auto;
+      position: relative;
+      cursor: pointer;
+      border-radius: 8px;
+      overflow: hidden;
+      background: none;
+    }
+    /* Hide decorative flaps from original envelope */
+    .envelope::before,
+    .envelope::after {
+      display: none;
+    }
+    /* Hide wax seal from original envelope */
+    .seal {
+      display: none;
+    }
+    /* Envelope image styling */
+    .envelope-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      transition: opacity 0.6s ease;
+      z-index: 1;
+    }
+    /* Open state envelope removes the top triangular flap to reveal the photo */
+    .envelope-img.open {
+      clip-path: polygon(0 20%, 100% 20%, 100% 100%, 0 100%);
+      opacity: 0;
+    }
+
+    /* Container for the photo that slides out from the envelope */
+    .photo-container {
+      position: absolute;
+      left: 5%;
+      width: 90%;
+      /* height should exceed the envelope to allow slide effect */
+      height: 250px;
+      top: -40%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      transform: translateY(50%);
+      opacity: 0;
+      transition: transform 0.8s ease, opacity 0.8s ease;
+      z-index: 2;
+    }
+    /* Shape for the placeholder/photo inside the container */
+    .photo-container .couple-photo-placeholder,
+    .photo-container img {
+      width: 100%;
+      height: 220px;
+      background: #f0d7d7;
+      color: #c49c9c;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      /* Clip bottom to create pentagon shape like envelope opening */
+      clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
+    }
+
+    /* Heart icons constructed via CSS shapes. Each heart comprises a rotated square (parent) and
+       two circular lobes created with pseudo-elements. Hearts remain hidden until the envelope
+       opens. */
+    .heart {
+      position: absolute;
+      /* Position hearts slightly lower so they originate from inside the envelope pocket */
+      bottom: 15px;
+      opacity: 0;
+      z-index: 10;
+      background: #c14444;
+    }
+    .heart::before,
+    .heart::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      background: #c14444;
+    }
+    /* First (central) heart: larger and centred */
+    .heart1 {
+      width: 50px;
+      height: 50px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-45deg);
+    }
+    .heart1::before,
+    .heart1::after {
+      width: 50px;
+      height: 50px;
+    }
+    .heart1::before { top: -25px; left: 0; }
+    .heart1::after  { top: 0;    left: 25px; }
+    /* Second heart positioned towards the left */
+    .heart2 {
+      width: 40px;
+      height: 40px;
+      left: 25%;
+      transform: translateX(-50%) rotate(-45deg);
+    }
+    .heart2::before,
+    .heart2::after {
+      width: 40px;
+      height: 40px;
+    }
+    .heart2::before { top: -20px; left: 0; }
+    .heart2::after  { top: 0;    left: 20px; }
+    /* Third heart positioned towards the right */
+    .heart3 {
+      width: 40px;
+      height: 40px;
+      left: 75%;
+      transform: translateX(-50%) rotate(-45deg);
+    }
+    .heart3::before,
+    .heart3::after {
+      width: 40px;
+      height: 40px;
+    }
+    .heart3::before { top: -20px; left: 0; }
+    .heart3::after  { top: 0;    left: 20px; }
+
+    /* Animation for hearts floating up. We animate translate and keep rotation so the heart keeps its shape. */
+    @keyframes floatUp {
+      from {
+        transform: translate(-50%, 0) rotate(-45deg);
+        opacity: 1;
+      }
+      to {
+        transform: translate(-50%, -150px) rotate(-45deg);
+        opacity: 0;
+      }
+    }
+
+    /* When envelope is opened, reveal the open envelope image, slide photo up and animate hearts */
+    .envelope.open .envelope-img.open {
+      opacity: 1;
+    }
+    .envelope.open .envelope-img.closed {
+      opacity: 0;
+    }
+    .envelope.open .photo-container {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    /* Trigger heart animations individually with slight delays for a natural staggered effect */
+    .envelope.open .heart1 {
+      opacity: 1;
+      animation: floatUp 3s ease-in-out forwards 0s;
+    }
+    .envelope.open .heart2 {
+      opacity: 1;
+      animation: floatUp 3s ease-in-out forwards 0.3s;
+    }
+    .envelope.open .heart3 {
+      opacity: 1;
+      animation: floatUp 3s ease-in-out forwards 0.6s;
+    }
+
+    /* Decorative hook above the envelope (small loop with hanging bar) */
+    .hook {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #c14444;
+      border-radius: 50%;
+      background: #fff5f5;
+      margin: 0 auto 8px;
+      position: relative;
+    }
+    .hook::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 8px;
+      background: #c14444;
+    }
+
+    /* Placeholder for couple photo inside envelope overlay */
+    .couple-photo-placeholder {
+      position: relative;
+      width: 90%;
+      height: 180px;
+      background: #f0d7d7;
+      color: #c49c9c;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      /* Clip the bottom of the photo to mimic envelope opening */
+      clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+    }
+    .tap-to-open {
+      margin-top: 20px;
+      font-family: 'Great Vibes', cursive;
+      font-size: 20px;
+      color: #a44c4c;
+    }
+    /* Hide content initially */
+    #invitation-content { display: none; }
+    /* Generic section styling inside invitation */
+    .section {
+      padding: 20px 30px;
+      text-align: center;
+    }
+    .section h2 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 28px;
+      color: #c26666;
+      margin-bottom: 8px;
+    }
+    .paragraph {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #4f2c2c;
+      margin-top: 10px;
+    }
+    .img-placeholder {
+      width: 100%;
+      height: 200px;
+      background: #f0d7d7;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #c49c9c;
+      font-style: italic;
+      margin-top: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* Holder for invitation background image */
+    .photo-holder {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    .photo-holder img.invitation-photo {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+    }
+    /* Countdown styling */
+    .countdown {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .countdown-item {
+      background: #c14444;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      width: 55px;
+    }
+    .count-number {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .count-label {
+      font-size: 11px;
+    }
+    /* Families section */
+    .families {
+      display: flex;
+      justify-content: space-between;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+    .families div { width: 48%; }
+    .date-number {
+      font-size: 48px;
+      font-weight: bold;
+      color: #c14444;
+    }
+    /* Timeline */
+    .timeline {
+      margin-top: 8px;
+      text-align: left;
+    }
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .timeline-item .time {
+      width: 60px;
+      color: #c14444;
+      font-weight: bold;
+    }
+    .timeline-item .desc {
+      flex: 1;
+      font-size: 14px;
+    }
+    /* RSVP form styling */
+    /* RSVP form styling */
+    .rsvp {
+      background: #fdf4f3;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 15px;
+    }
+    .rsvp input[type="text"] {
+      width: 100%;
+      padding: 8px 4px;
+      border: none;
+      border-bottom: 1px solid #d5baba;
+      background: transparent;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+    .rsvp input[type="text"]:focus {
+      outline: none;
+      border-bottom-color: #c14444;
+    }
+    .rsvp .radio-group {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .rsvp .radio-group input[type="radio"] {
+      display: none;
+    }
+    .rsvp .radio-group label {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #d5baba;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #fff;
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    .rsvp .radio-group input[type="radio"]:checked + label {
+      background: #c14444;
+      color: #fff;
+      border-color: #c14444;
+    }
+    .rsvp select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #d5baba;
+      border-radius: 4px;
+      background: #fff;
+      margin: 10px 0 20px 0;
+      font-size: 14px;
+    }
+    .rsvp button {
+      width: 100%;
+      padding: 10px;
+      background: #c14444;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .rsvp button:hover { background: #a63a3a; }
+    /* Gift section styling */
+    .gift-card {
+      display: flex;
+      align-items: center;
+      background: #f9eaea;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .gift-card .photo {
+      /* Ensure circular avatar images fill the space nicely */
+      flex: 0 0 60px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+    .gift-card .info {
+      flex: 1;
+      font-size: 14px;
+      color: #4f2c2c;
+    }
+    .gift-card .qr {
+      flex: 0 0 80px;
+      height: 80px;
+      background: #f0d7d7;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #c49c9c;
+      margin-left: 10px;
+      font-size: 12px;
+    }
+    .thank-you {
+      margin: 20px 30px;
+      font-size: 16px;
+      font-style: italic;
+      color: #7a2929;
+      /* Center align the closing thank-you message */
+      text-align: center;
+    }
+
+    /* Fade-in animation for sections when they enter viewport */
+    .fade-section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-section.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Calendar styling for the save‑the‑date section */
+    .calendar {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+    .calendar th,
+    .calendar td {
+      width: 14.28%;
+      text-align: center;
+      padding: 6px;
+      font-size: 14px;
+    }
+    .calendar th {
+      font-weight: bold;
+      color: #c14444;
+    }
+    .calendar td {
+      color: #5a2a2a;
+    }
+    /* Highlighted day with circular outline and heart */
+    .calendar .circle-heart {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      border-radius: 50%;
+      border: 1px solid #c14444;
+      color: #c14444;
+      position: relative;
+      font-weight: bold;
+    }
+    .calendar .circle-heart::after {
+      /* Use a heart symbol overlay at the top right of the circle */
+      content: "\2764";
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 12px;
+      color: #c14444;
+    }
+  </style>
+</head>
+<body>
+  <div class="card-wrapper">
+    <!-- Floating icons -->
+    <div class="floating-icons">
+      <button id="favoriteBtn" title="Yêu thích" aria-label="Thả tim">♥</button>
+    </div>
+    <div class="signature">Made by cinelove (mẫu tái tạo)</div>
+    <!-- Background music element. Replace 'music.mp3' with your own audio file placed in the assets folder. -->
+    <!-- Updated to play new wedding song -->
+    <audio id="bgMusic" src="assets/wedding.mp3" loop autoplay></audio>
+    <!-- Audio control icon (plays/pauses music) -->
+    <!-- Add initial classes to rotate and hide the cross on load -->
+    <div id="audio-control-wrapper" class="music-rotating playing">
+      <img src="assets/music-icon.png" alt="Âm nhạc" class="music-icon">
+      <div class="icon-cancel"></div>
+    </div>
+    <!-- Header -->
+    <div class="header">
+      <div class="small-title">WEDDING INVITATION</div>
+      <div class="main-title">THIỆP MỜI CƯỚI</div>
+      <!-- Updated couple names with each element on its own line and centred ampersand -->
+      <div class="names">Nguyễn Khánh Lộc<br>&amp;<br>Đặng Thị Thùy Linh</div>
+      <div class="double-happiness">囍</div>
+    </div>
+    <!-- Envelope Section -->
+    <div class="envelope-wrapper">
+      <!-- Small hook decoration above the envelope -->
+      <div class="hook"></div>
+      <div id="envelope" class="envelope">
+        <!-- Closed and open envelope images -->
+        <img src="assets/envelope.png" alt="Envelope" class="envelope-img closed">
+        <img src="assets/envelope.png" alt="Envelope Open" class="envelope-img open">
+        <!-- Photo container slides out when opening -->
+        <div class="photo-container">
+          <!-- Placeholder for couple photo; replace with your own image if desired -->
+          <div class="couple-photo-placeholder">Ảnh cặp đôi</div>
+        </div>
+        <!-- Hearts that float up when the envelope is opened -->
+        <div class="heart heart1"></div>
+        <div class="heart heart2"></div>
+        <div class="heart heart3"></div>
+      </div>
+      <div class="tap-to-open">Chạm để mở thiệp</div>
+    </div>
+    <!-- Invitation Content (hidden until opened) -->
+    <div id="invitation-content">
+      <!-- Top image & message -->
+      <div class="section fade-section">
+        <h2>Lời mời</h2>
+        <!-- Replace placeholder with your own couple photo -->
+        <div class="photo-holder">
+          <img src="assets/invitation-bg.jpg" alt="Ảnh cặp đôi" class="invitation-photo">
+        </div>
+        <div class="countdown">
+          <div class="countdown-item"><span id="days2" class="count-number">0</span><span class="count-label">Ngày</span></div>
+          <div class="countdown-item"><span id="hours2" class="count-number">00</span><span class="count-label">Giờ</span></div>
+          <div class="countdown-item"><span id="minutes2" class="count-number">00</span><span class="count-label">Phút</span></div>
+          <div class="countdown-item"><span id="seconds2" class="count-number">00</span><span class="count-label">Giây</span></div>
+        </div>
+        <div class="paragraph">
+          Gửi đến gia đình, bạn bè thân mến,<br>
+          Cảm ơn bạn đã dành thời gian quý báu để cùng chúng mình chung vui trong ngày đặc biệt này. Chúng mình vô cùng biết ơn vì luôn có sự đồng hành và ủng hộ của bạn, và rất vinh hạnh khi được chia sẻ niềm hạnh phúc của mình cùng bạn.<br>
+          Trân trọng kính mời bạn đến dự lễ cưới của chúng mình.
+        </div>
+      </div>
+      <!-- Event details section -->
+      <div class="section fade-section">
+        <!-- Updated couple names in event details with line breaks and centred ampersand -->
+        <h2>Nguyễn Khánh Lộc<br>&amp;<br>Đặng Thị Thùy Linh</h2>
+        <div class="families">
+          <div>
+            <strong>Nhà Trai</strong><br>
+            Ông: Nguyễn Văn Tiến<br>
+            Bà: Nguyễn Thị Kim Khánh<br>
+            xã Tân Chi, Tỉnh Bắc Ninh
+          </div>
+          <div>
+            <strong>Nhà Gái</strong><br>
+            Ông: Đặng Đình Duệ<br>
+            Bà: Nguyễn Thị Huyền<br>
+            xã Tân Chi, Tỉnh Bắc Ninh
+          </div>
+        </div>
+        <div>TIỆC MỪNG LỄ THÀNH HÔN</div>
+        <!-- Updated ceremony time and day of week -->
+        <div>Vào lúc 09:00 Chủ Nhật</div>
+        <!-- Updated date -->
+        <div class="date-number">14</div>
+        <div>Tháng 12  Năm 2025</div>
+        <div style="margin-top: 10px; font-weight: bold;">Địa điểm tổ chức</div>
+        <!-- Updated venue details -->
+        <div>Tư gia họ nhà trai<br>Xã Tân Chi, Tỉnh Bắc Ninh</div>
+        <!-- Embedded map with clickable overlay; clicking opens full Google Maps -->
+        <div style="position: relative; width: 100%; height: 180px; margin-top: 10px; border-radius: 10px; overflow: hidden;">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d465.21091225833686!2d106.076454411633!3d21.12502945586827!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31350b59c8d1ed05%3A0x1e1a7c1de7c247c1!2zxJBhzKNpIEx5zIEgU8ahbiBUacOqzIFuIEtoYcyBbmg!5e0!3m2!1svi!2s!4v1762791973607!5m2!1svi!2s" width="100%" height="100%" style="border:0; position:absolute; top:0; left:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <!-- Transparent link overlay: clicking anywhere on the map opens Google Maps in a new tab -->
+          <a href="https://www.google.com/maps?q=21.12502945586827,106.076454411633" target="_blank" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:5;"></a>
+        </div>
+      </div>
+      <!-- Sweet Wedding / Marry me / Yes I Do sections collapsed into one area -->
+      <div class="section fade-section">
+        <!-- Render the "Sweet Wedding" heading in a unified script font -->
+        <h2 class="sweet-title">Sweet Wedding</h2>
+        <!-- Couple photo placeholder updated to use the first demo image. This displays the photo supplied as “ảnh 1”. -->
+        <img src="assets/1.jfif" alt="Ảnh cặp đôi" class="img-placeholder" style="object-fit: cover;">
+        <div class="paragraph" style="font-family:'Great Vibes', cursive; font-size:24px; color:#c14444;">Marry me?</div>
+        <!-- Bride photo placeholder now shows a demo image (1.jpg) -->
+        <img src="assets/2.jpg" alt="Ảnh cô dâu" class="img-placeholder" style="object-fit: cover;">
+        <div class="paragraph" style="font-family:'Great Vibes', cursive; font-size:24px; color:#c14444;">Yes! I Do</div>
+      </div>
+      <!-- About us -->
+      <div class="section fade-section">
+        <h2>About us</h2>
+        <div class="families" style="margin-top:0;">
+          <div style="text-align:center;">
+          <img src="assets/1.jpg" alt="Ảnh cô dâu" style="width:100%; height:120px; object-fit:cover; border-radius:10px;">
+            <strong>Đặng Thị Thùy Linh</strong><br>
+            20/04/1996<br>
+            TP.Bắc Ninh
+          </div>
+          <div style="text-align:center;">
+            <img src="assets/3.jfif" alt="Ảnh chú rể" style="width:100%; height:120px; object-fit:cover; border-radius:10px;">
+            <strong>Nguyễn Khánh Lộc</strong><br>
+            09/09/1993<br>
+            TP.Bắc Ninh
+          </div>
+        </div>
+      </div>
+      <!-- Save the date + Timeline -->
+      <div class="section fade-section">
+        <h2>Save the date</h2>
+        <!-- Save-the-date couple image placeholder using demo image (3.jpg) -->
+        <img src="assets/3.jpg" alt="Ảnh cặp đôi" style="width:100%; height:160px; object-fit:cover; border-radius:10px;">
+        <!-- Calendar for December 2025 with the 14th highlighted -->
+        <table class="calendar">
+          <thead>
+            <tr>
+              <th>T2</th><th>T3</th><th>T4</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td>
+            </tr>
+            <tr>
+              <td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td><span class="circle-heart">14</span></td>
+            </tr>
+            <tr>
+              <td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td>
+            </tr>
+            <tr>
+              <td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td>
+            </tr>
+            <tr>
+              <td>29</td><td>30</td><td>31</td><td></td><td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+        <h2 style="margin-top:20px;">Timeline</h2>
+        <div class="timeline">
+          <!-- Updated timeline: times and descriptions -->
+          <div class="timeline-item"><span class="time">10:00</span><span class="desc">🎉 Khai tiệc</span></div>
+          <div class="timeline-item"><span class="time">13:15</span><span class="desc">🚗 Lễ rước dâu</span></div>
+          <div class="timeline-item"><span class="time">13:40</span><span class="desc">📸 Chụp hình lưu niệm</span></div>
+        </div>
+      </div>
+      <!-- Album section: two images per row with fade-in effect -->
+      <div class="section fade-section">
+        <h2>Album</h2>
+        <div class="album-container" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-top:10px;">
+          <img class="album-item fade-section" src="assets/4.jpg" alt="Ảnh 1" style="width:100%; height:200px; object-fit:cover; border-radius:10px;">
+          <img class="album-item fade-section" src="assets/5.jpg" alt="Ảnh 2" style="width:100%; height:200px; object-fit:cover; border-radius:10px;">
+          <img class="album-item fade-section" src="assets/6.jpg" alt="Ảnh 3" style="width:100%; height:200px; object-fit:cover; border-radius:10px;">
+          <img class="album-item fade-section" src="assets/7.jpg" alt="Ảnh 4" style="width:100%; height:200px; object-fit:cover; border-radius:10px;">
+        </div>
+      </div>
+      <!-- RSVP form -->
+      <div class="section fade-section">
+        <h2>Xác nhận tham dự</h2>
+        <form class="rsvp">
+          <input id="rsvp-name" type="text" placeholder="Họ và tên của bạn">
+          <div class="radio-group">
+            <input type="radio" id="attendYes" name="attend2" value="yes" checked>
+            <label for="attendYes">Có, tôi sẽ tham dự</label>
+            <input type="radio" id="attendNo" name="attend2" value="no">
+            <label for="attendNo">Xin lỗi, tôi không thể tham dự</label>
+          </div>
+          <select id="guest-count">
+            <option>1 người</option>
+            <option>2 người</option>
+            <option>3 người</option>
+            <option>4 người</option>
+          </select>
+          <button type="button">Gửi xác nhận</button>
+        </form>
+      </div>
+      <!-- Gift section -->
+      <div class="section fade-section">
+        <h2>Gửi quà mừng</h2>
+        <div class="gift-card">
+          <!-- Display bride's image inside the circular photo area -->
+          <img class="photo" src="assets/bride.png" alt="Cô dâu">
+          <div class="info">
+            Cô dâu<br>Đặng Thị Thùy Linh<br>MB Bank: 012345678
+          </div>
+          <div class="qr">QR</div>
+        </div>
+        <div class="gift-card">
+          <!-- Display groom's image inside the circular photo area -->
+          <img class="photo" src="assets/groom.png" alt="Chú rể">
+          <div class="info">
+            Chú rể<br>Nguyễn Khánh Lộc<br>MB Bank: 012345678
+          </div>
+          <div class="qr">QR</div>
+        </div>
+      </div>
+      <!-- Closing thank-you message centred for better balance -->
+      <div class="thank-you" style="text-align:center;">
+        <!-- Wrap the thank you text inside a paragraph with auto margins to ensure centering -->
+        <p style="margin:0 auto; display:inline-block;">
+          Cảm ơn bạn đã dành thời gian và tình cảm để chung vui với chúng mình. Hẹn gặp bạn trong ngày vui!
+        </p>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Handle envelope click to show content
+    const envelopeEl = document.getElementById('envelope');
+    const invitationEl = document.getElementById('invitation-content');
+    // Music elements
+    const bgMusic = document.getElementById('bgMusic');
+    const audioControl = document.getElementById('audio-control-wrapper');
+    const musicIcon = audioControl ? audioControl.querySelector('.music-icon') : null;
+    let musicPlaying = false;
+    envelopeEl.addEventListener('click', function() {
+      // Prevent further clicks
+      this.style.pointerEvents = 'none';
+      // Add open class to trigger CSS transitions: photo slides up and hearts float
+      this.classList.add('open');
+      // Start background music on first interaction if not already playing
+      if (bgMusic && !musicPlaying) {
+        bgMusic.play().catch(function(){});
+        if (audioControl) {
+          audioControl.classList.add('music-rotating');
+          audioControl.classList.add('playing');
+        }
+        musicPlaying = true;
+      }
+      // After animation finishes (~3.5s), hide the envelope and show invitation content
+      setTimeout(function() {
+        envelopeEl.parentElement.style.display = 'none';
+        invitationEl.style.display = 'block';
+      }, 3500);
+    });
+
+    // Toggle music play/pause when clicking the music button
+    if (audioControl) {
+      audioControl.addEventListener('click', function(event) {
+        event.stopPropagation();
+        if (!bgMusic) return;
+        if (bgMusic.paused) {
+          bgMusic.play().catch(function(){});
+          audioControl.classList.add('music-rotating');
+          audioControl.classList.add('playing');
+        } else {
+          bgMusic.pause();
+          audioControl.classList.remove('music-rotating');
+          audioControl.classList.remove('playing');
+        }
+      });
+    }
+    // Countdown to the event date (14 Dec 2025 at 09:00)
+    function updateCountdown() {
+      const eventDate = new Date(2025, 11, 14, 9, 0, 0);
+      const now = new Date();
+      let diff = eventDate - now;
+      if (diff < 0) diff = 0;
+      let totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      totalSeconds -= days * 86400;
+      const hours = Math.floor(totalSeconds / 3600);
+      totalSeconds -= hours * 3600;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds - minutes * 60;
+      document.getElementById('days2').innerText = days;
+      document.getElementById('hours2').innerText = (hours < 10 ? '0' : '') + hours;
+      document.getElementById('minutes2').innerText = (minutes < 10 ? '0' : '') + minutes;
+      document.getElementById('seconds2').innerText = (seconds < 10 ? '0' : '') + seconds;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // Fade-in animations: observe sections and add 'show' class when they are in view
+    document.addEventListener('DOMContentLoaded', function () {
+      const observer = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('show');
+            // Stop observing once the section is visible
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      const sections = document.querySelectorAll('.fade-section');
+      sections.forEach(function (sec) {
+        observer.observe(sec);
+      });
+      // Attempt to auto-play music and start rotating the icon on page load.
+      // Immediately set the music icon to the "playing" state and try to start audio.
+      if (audioControl) {
+        audioControl.classList.add('music-rotating');
+        audioControl.classList.add('playing');
+      }
+      if (bgMusic) {
+        // Try to play the background music on page load; browsers may still block this
+        // until the user interacts with the page, but this call ensures the music
+        // begins as soon as allowed.
+        bgMusic.play().catch(function(){});
+        musicPlaying = true;
+      }
+    });
+  </script>
+</body>
+</html>
