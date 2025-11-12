@@ -80,18 +80,62 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #fffdfd;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      /* subtle pale-pink circular disc look */
+      background: radial-gradient(circle at 30% 30%, #fffaf9 0%, #ffeef0 45%, #ffdede 100%);
+      border: 2px solid rgba(194,68,68,0.12);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 200;
+      z-index: 400;
     }
-    #audio-control-wrapper img.music-icon {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
+    /* the inner disc — works for <img> or inline <svg>; keep it smaller than the wrapper so we see the circular ring */
+    #audio-control-wrapper .music-icon {
+      width: 62%;
+      height: 62%;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    /* rotate the disc when the playing/rotating class is applied */
+    .music-icon.music-rotating {
+      animation: rotateIcon 6s linear infinite;
+    }
+    /* Fallback tooltip shown when autoplay is blocked to instruct user to click the music button */
+    .audio-tooltip {
+      position: absolute;
+      top: 8px;
+      right: 64px; /* sits to the left of the audio control */
+      background: #fff8f8;
+      color: #8b2f2f;
+      border: 1px solid #f2dede;
+      padding: 8px 10px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      font-size: 12px;
+      line-height: 1.2;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 600;
+      pointer-events: auto;
+      display: inline-block;
+      max-width: 200px;
+    }
+    .audio-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .audio-tooltip::after {
+      content: '';
+      position: absolute;
+      right: 14px;
+      top: 100%;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #fff8f8;
     }
     /* Cross (X) overlay for muted state */
     #audio-control-wrapper .icon-cancel {
@@ -664,11 +708,13 @@
     <!-- Background music element. Replace 'music.mp3' with your own audio file placed in the assets folder. -->
     <!-- Updated to play new wedding song -->
     <audio id="bgMusic" src="assets/wedding.mp3" loop autoplay></audio>
-    <!-- Audio control icon (plays/pauses music) -->
-    <!-- Add initial classes to rotate and hide the cross on load -->
-    <div id="audio-control-wrapper" class="music-rotating playing">
+    <!-- Audio control icon (plays/pauses music). Using PNG icon as requested. -->
+    <div id="audio-control-wrapper" title="Âm nhạc" aria-label="Điều khiển âm nhạc">
       <img src="assets/music-icon.png" alt="Âm nhạc" class="music-icon">
       <div class="icon-cancel"></div>
+    </div>
+    <div id="audio-tooltip" class="audio-tooltip" role="status" aria-live="polite" style="display:none;">
+     
     </div>
     <!-- Header -->
     <div class="header">
@@ -887,20 +933,46 @@
     const bgMusic = document.getElementById('bgMusic');
     const audioControl = document.getElementById('audio-control-wrapper');
     const musicIcon = audioControl ? audioControl.querySelector('.music-icon') : null;
+    const audioTooltip = document.getElementById('audio-tooltip');
+    let _audioTooltipTimer = null;
+
+    function showAudioTooltip(msg, timeout = 6000) {
+      if (!audioTooltip) return;
+      audioTooltip.textContent = msg;
+      audioTooltip.style.display = 'inline-block';
+      // small delay to allow transition
+      requestAnimationFrame(() => audioTooltip.classList.add('visible'));
+      audioTooltip.setAttribute('aria-hidden', 'false');
+      if (_audioTooltipTimer) clearTimeout(_audioTooltipTimer);
+      if (timeout > 0) _audioTooltipTimer = setTimeout(hideAudioTooltip, timeout);
+    }
+
+    function hideAudioTooltip() {
+      if (!audioTooltip) return;
+      audioTooltip.classList.remove('visible');
+      audioTooltip.setAttribute('aria-hidden', 'true');
+      if (_audioTooltipTimer) { clearTimeout(_audioTooltipTimer); _audioTooltipTimer = null; }
+      // hide after transition
+      setTimeout(() => { if (audioTooltip) audioTooltip.style.display = 'none'; }, 200);
+    }
     let musicPlaying = false;
     envelopeEl.addEventListener('click', function() {
       // Prevent further clicks
       this.style.pointerEvents = 'none';
       // Add open class to trigger CSS transitions: photo slides up and hearts float
       this.classList.add('open');
-      // Start background music on first interaction if not already playing
-      if (bgMusic && !musicPlaying) {
-        bgMusic.play().catch(function(){});
-        if (audioControl) {
-          audioControl.classList.add('music-rotating');
-          audioControl.classList.add('playing');
-        }
-        musicPlaying = true;
+      // Start background music on first interaction — try to play and update UI on success
+      if (bgMusic) {
+        bgMusic.play().then(function() {
+          if (musicIcon) musicIcon.classList.add('music-rotating');
+          if (audioControl) audioControl.classList.add('playing');
+          musicPlaying = true;
+          hideAudioTooltip();
+        }).catch(function() {
+          // play blocked; leave musicPlaying false so future clicks can retry
+          musicPlaying = false;
+          showAudioTooltip('', 8000);
+        });
       }
       // After animation finishes (~3.5s), hide the envelope and show invitation content
       setTimeout(function() {
@@ -914,13 +986,18 @@
       audioControl.addEventListener('click', function(event) {
         event.stopPropagation();
         if (!bgMusic) return;
+        // toggle playback and rotate the inner image only
         if (bgMusic.paused) {
-          bgMusic.play().catch(function(){});
-          audioControl.classList.add('music-rotating');
-          audioControl.classList.add('playing');
+          bgMusic.play().then(function() {
+            if (musicIcon) musicIcon.classList.add('music-rotating');
+            audioControl.classList.add('playing');
+            hideAudioTooltip();
+          }).catch(function() {
+            showAudioTooltip('', 8000);
+          });
         } else {
           bgMusic.pause();
-          audioControl.classList.remove('music-rotating');
+          if (musicIcon) musicIcon.classList.remove('music-rotating');
           audioControl.classList.remove('playing');
         }
       });
@@ -964,15 +1041,22 @@
       // Attempt to auto-play music and start rotating the icon on page load.
       // Immediately set the music icon to the "playing" state and try to start audio.
       if (audioControl) {
-        audioControl.classList.add('music-rotating');
-        audioControl.classList.add('playing');
+        // show ring/outline but don't mark playing until play succeeds
+        audioControl.classList.remove('playing');
       }
       if (bgMusic) {
-        // Try to play the background music on page load; browsers may still block this
-        // until the user interacts with the page, but this call ensures the music
-        // begins as soon as allowed.
-        bgMusic.play().catch(function(){});
-        musicPlaying = true;
+        // Try to play the background music on page load. Only mark playing and rotate
+        // the inner icon if it succeeds.
+        bgMusic.play().then(function() {
+          musicPlaying = true;
+          if (musicIcon) musicIcon.classList.add('music-rotating');
+          if (audioControl) audioControl.classList.add('playing');
+        }).catch(function() {
+          // Autoplay blocked — wait for user interaction (e.g., opening the envelope)
+          musicPlaying = false;
+          if (audioControl) audioControl.classList.remove('playing');
+          showAudioTooltip('Bấm mở thư để nhạc chạy nhá <3', 8000);
+        });
       }
     });
   </script>
